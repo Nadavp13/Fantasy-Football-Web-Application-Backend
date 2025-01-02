@@ -1,5 +1,5 @@
 import Lineup, { ILineup } from "../models/Lineup.Schema";
-import lineupsService from "../services/lineup.service";
+import lineupsService from "../services/lineups.service";
 import { Request, Response } from "express";
 
 const createLineup = async (req: Request, res: Response)=> {
