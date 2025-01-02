@@ -1,0 +1,38 @@
+POST http://localhost:3000/
+Content-Type: application/json
+
+{
+    "name": "John",
+    "league": "English Premier League",
+    "team": "Team A",
+    "price": 10,
+    "totalPoints": 150,
+    "weeklyPoints": [10, 12, 9, 8],
+    "position": "FWD"
+}
+
+###
+
+GET http://localhost:3000/
+Content-Type: application/json
+
+
+###
+PUT http://localhost:3000/John
+Content-Type: application/json
+
+{
+    "name": "John Updated",
+    "league": "English Premier League",
+    "team": "Team B",
+    "price": 12,
+    "totalPoints": 160,
+    "weeklyPoints": [11, 12, 10, 9],
+    "position": "MID"
+}
+
+###
+
+DELETE http://localhost:3000/John%20Updated
+Content-Type: application/json
+
