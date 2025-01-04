@@ -11,10 +11,12 @@ if(process.env.NODE_ENV !== 'production') {
 console.log('Environment Variables:', process.env.DATABASE_URL);
 
 const app: Express = express();
+const cors = require('cors');
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
 
+app.use(cors());
 app.use(express.static('public'));
 
 app.use('/', FootballPlayerRoutes);
