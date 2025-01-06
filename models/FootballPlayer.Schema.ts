@@ -7,7 +7,8 @@ export interface IFootballPlayer {
     price: number;
     totalPoints: number;
     weeklyPoints: number[]; 
-    position: "FWD" | "MID" | "DEF" | "GK"; 
+    position: "FWD" | "MID" | "DEF" | "GK";
+    image? : string; 
 }
 
 const FootballPlayerSchema = new mongoose.Schema<IFootballPlayer>({
@@ -26,6 +27,7 @@ const FootballPlayerSchema = new mongoose.Schema<IFootballPlayer>({
         required: true,
         enum: ["FWD", "MID", "DEF", "GK"], 
     },
+    image: { type: String, required: false }
 });
 
 const FootballPlayer = mongoose.model<IFootballPlayer>("footballPlayer", FootballPlayerSchema, "footballPlayers");

@@ -7,15 +7,15 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select
 import time
+import json
 import os
 
 # Set up the Chrome options to prevent the browser from opening
 chrome_options = Options()
-#chrome_options.add_argument('--headless')  # Run headlessly
+# chrome_options.add_argument('--headless')  # Run headlessly
 
 # Path to your chromedriver.exe
 chromedriver_path = r"C:\Program Files\Chromium\chromedriver-win64\chromedriver.exe"  # Update this with the actual path to your chromedriver
-
 
 # Set up the WebDriver with your existing chromedriver.exe
 driver = webdriver.Chrome(service=Service(chromedriver_path), options=chrome_options)
@@ -37,9 +37,9 @@ try:
 except Exception as e:
     print(f"Cookie acceptance failed: {e}")
 
-# Wait for the page to load completely (optional, depends on the site)
+# Wait for the page to load completely
 driver.implicitly_wait(5)
-
+"""
 # Find the 'sort' select element
 select_element = driver.find_element(By.ID, "sort")
 
@@ -48,67 +48,117 @@ select_object = Select(select_element)
 
 # Select the "Round points" option
 select_object.select_by_value("event_points")
-
+"""
 time.sleep(1)
-data = []
-for _ in range(24):
 
-    # Find the table using its class name
-    table = driver.find_element(By.CSS_SELECTOR, '.Table-sc-ziussd-1.ElementTable-sc-1v08od9-0.iPaulP.OZmJL')
+# Position mapping for the data extraction
+position_mapping = {
+    "Defender": "DEF",
+    "Midfielder": "MID",
+    "Forward": "FWD",
+    "Goalkeeper": "GK"
+}
 
-    # Find all rows in the table body
-    rows = table.find_elements(By.CSS_SELECTOR, '.ElementTable__ElementRow-sc-1v08od9-3.kGMjuJ')
+# List to store player data
+player_data_list = []
 
-    # Loop through each row and extract the data
-    for row in rows:
-        cols = row.find_elements(By.TAG_NAME, 'td')
+# Function to process player data on the current page
+def process_players_on_page():
+    # Find all player rows in the table
+    player_rows = driver.find_elements(By.CSS_SELECTOR, ".ElementTable__ElementRow-sc-1v08od9-3.kGMjuJ")
+    print(f"Found {len(player_rows)} players on the page.")
 
-        # Check if there are enough columns to extract data
-        if len(cols) >= 7:
-            player_name = cols[1].text.strip()
-            cost = cols[2].text.strip()
-            selection = cols[3].text.strip()
-            form = cols[4].text.strip()
-            points = cols[5].text.strip()
-            extra = cols[6].text.strip()
+    for index, row in enumerate(player_rows):
+        try:
+            # Find the button to open the player dialog
+            player_button = row.find_element(By.CSS_SELECTOR, ".ElementDialogButton__StyledElementDialogButton-sc-1vrzlgb-0.irVYoY")
+            player_button.click()
+            print(f"Clicked on player {index + 1}.")
 
-            # Append to the list as a dictionary
-            data.append({
-                'Player': player_name,
-                'Cost': cost,
-                'Selection': selection,
-                'Form': form,
-                'Points': points,
-                'Extra': extra
-            })
+            # Extract data from the player dialog
+            name = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, "h2.styles__ElementHeading-sc-ahs9zc-5.gwmHpL"))
+            ).text.strip()
+            position = driver.find_element(By.CSS_SELECTOR, "span.styles__ElementTypeLabel-sc-ahs9zc-4.kDMSIW").text.strip()
+            team = driver.find_element(By.CSS_SELECTOR, "div.styles__Club-sc-ahs9zc-6.eiknRS").text.strip()
+            image_element = driver.find_element(By.CSS_SELECTOR, "img.styles__Img-sc-ahs9zc-7.klUaQC")
+            image_url = image_element.get_attribute("srcset").split(",")[0].strip().replace("//", "").split(" ")[0]
+            price = driver.find_elements(By.CSS_SELECTOR, "div.styles__StatValue-sc-1tsp201-2.fgGEXH")[0].text.strip()
 
+            table = driver.find_element(By.CSS_SELECTOR, ".styles__TableWrap-sc-ahs9zc-14 .Table-sc-ziussd-1")
+
+            rows = table.find_elements(By.TAG_NAME, "tr")
+            pts_list = []
+
+            for r in rows[1:-2]:  # rows[1:-2] to skip the header and the last two rows
+                # Find all columns (td) in the row
+                cols = r.find_elements(By.TAG_NAME, "td")
+                if len(cols) > 2:  # Ensure the row has enough columns
+                    pts = cols[2].text  # The Pts column is the 4th column (index 3)
+                    pts_list.append(pts)
+
+            # Flip the points list for this player
+            flipped_points = pts_list[::-1]
+
+            # Map position to desired format
+            position = position_mapping.get(position, "Unknown")
+
+            # Store player data with the flipped points
+            player_data = {
+                "name": name,
+                "league" : "English Premier League",
+                "team": team,
+                "price": price,
+                "totalPoints": sum(int(num) for num in flipped_points),
+                "weeklyPoints": flipped_points,
+                "position": position,
+                "image": image_url,
+                  # Add the flipped points list here
+            }
+            player_data_list.append(player_data)
+
+            # Find the close button and click it
+            close_button = WebDriverWait(driver, 10).until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, ".Dialog__CloseButton-sc-5bogmv-1.cgQMVU"))
+            )
+            close_button.click()
+            print(f"Closed player dialog for player {index + 1}.")
+
+        except Exception as e:
+            print(f"An error occurred with player {index + 1}: {e}")
+
+# Function to click "Next" and handle pagination
+def go_to_next_page():
     try:
-        # Find the button element using CSS selector
+        # Find the "Next" button
         next_button = WebDriverWait(driver, 10).until(
-            EC.element_to_be_clickable(
-                (By.XPATH, "//button[@class='PaginatorButton__Button-sc-xqlaki-0 cmSnxm' and contains(., 'Next')]")))
-
-        # Click the button
+            EC.element_to_be_clickable((By.XPATH, "//button[@class='PaginatorButton__Button-sc-xqlaki-0 cmSnxm' and contains(., 'Next')]"))
+        )
         next_button.click()
         print("Clicked 'Next' button successfully!")
-
-
+        driver.execute_script("window.scrollTo(0, 0);")
+        time.sleep(2)  # Wait for the next page to load
     except Exception as e:
+        print(f"Error finding or clicking 'Next' button: {e}")
+        return False  # No more pages
 
-        # Handle potential exceptions
+# Start processing and continue until no "Next" button is found
+for i in range(24):
+    process_players_on_page()
+    if i < 23:
+        go_to_next_page()
 
-        if "NoSuchElementException" in str(e):
+# Print the extracted player data
+print(f"Extracted data for {len(player_data_list)} players:")
+for player in player_data_list:
+    print(player)
 
-            print("Button element not found. Pagination might be on the last page already.")
+file_path = "english_premier_league_players_data.json"
 
-        else:
+with open(file_path, "w") as json_file:
+    json.dump(player_data_list, json_file, indent=4)
 
-            print(f"An error occurred while clicking 'Next': {e}")
-
-# Print the extracted data
-print(len(data))
-for player_data in data:
-    print(player_data)
+print(f"Data has been saved to {file_path}")
 
 # Close the WebDriver after scraping
 driver.quit()
