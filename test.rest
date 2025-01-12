@@ -13,7 +13,66 @@ Content-Type: application/json
 
 ###
 
+
+POST http://localhost:3000/footballPlayers/
+Content-Type: application/json
+
+{
+    "name": "John",
+    "league": "English Premier League",
+    "team": "Team A",
+    "price": 10,
+    "totalPoints": 150,
+    "weeklyPoints": [10, 12, 9, 8],
+    "position": "FWD"
+}
+
+###
+
+
+POST http://localhost:3000/users/
+Content-Type: application/json
+
+{
+    "email": "user@example.com",
+    "password": "securepassword",
+    "role": "user",
+    "lineup": null,
+    "leagues": []
+}
+
+
+
+###
 GET http://localhost:3000/
+Content-Type: application/json
+
+
+###
+
+GET http://localhost:3000/users/
+Content-Type: application/json
+
+###
+
+
+GET http://localhost:3000/users/
+Content-Type: application/json
+Authorization: dd98fc1ff5c733026390fbbe29499d48b979a8b53ee13a21eaf95fd619db70e63d17a378f5a83e0b090353dd79771f2a5fcaf845cc9778c760e9fc9459afc407
+
+
+###
+
+
+GET http://localhost:3000/users/
+Content-Type: application/json
+Authorization: 925db631465d9151d6fe511d5c1e32c4f3674bd6bac8e563d7564d798439d93b308cc3b12e080be292f908638c47de83d40e1369565db4e320b71c80a6ee8e8d
+
+
+###
+
+
+GET http://localhost:3000/footballPlayers/
 Content-Type: application/json
 
 

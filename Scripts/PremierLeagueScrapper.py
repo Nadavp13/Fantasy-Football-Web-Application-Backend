@@ -84,6 +84,7 @@ def process_players_on_page():
             image_element = driver.find_element(By.CSS_SELECTOR, "img.styles__Img-sc-ahs9zc-7.klUaQC")
             image_url = image_element.get_attribute("srcset").split(",")[0].strip().replace("//", "").split(" ")[0]
             price = driver.find_elements(By.CSS_SELECTOR, "div.styles__StatValue-sc-1tsp201-2.fgGEXH")[0].text.strip()
+            price = float(price.replace('£', '').replace('m', '').strip())
 
             table = driver.find_element(By.CSS_SELECTOR, ".styles__TableWrap-sc-ahs9zc-14 .Table-sc-ziussd-1")
 

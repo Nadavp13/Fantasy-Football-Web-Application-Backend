@@ -1,8 +1,10 @@
 import express, { Express } from "express";
-import FootballPlayerRoutes from "./routes/footballPlayers.routes";
+import footballPlayerRoutes from "./src/routes/footballPlayers.routes";
+import userRoutes from "./src/routes/users.routes";
+import authRoutes from "./src/routes/auth.routes";
 import dotenv from 'dotenv';
 import bodyParser from 'body-parser';
-import FootballPlayer from "./models/FootballPlayer.Schema";
+import FootballPlayer from "./src/models/FootballPlayer.Schema";
 import mongoose from "mongoose";
 
 if(process.env.NODE_ENV !== 'production') {
@@ -19,8 +21,13 @@ app.use(express.json());
 app.use(cors());
 app.use(express.static('public'));
 
-app.use('/', FootballPlayerRoutes);
+app.use('/footballPlayers', footballPlayerRoutes);
+app.use('/users', userRoutes);
+app.use('/auth', authRoutes);
+
+
 FootballPlayer.create();
+
 
 
 const connectDB = () => {
